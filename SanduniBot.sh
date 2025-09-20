@@ -3,9 +3,9 @@ set -e
 
 # ================= CONFIG =================
 BOT_USER="botuser"
-BOT_DIR="/home/$BOT_USER/liqhunterbot"
+BOT_DIR="/home/$BOT_USER/sandunibot"
 BOT_FILE="bot.py"
-SERVICE_NAME="liqhunterbot"
+SERVICE_NAME="sandunibot"
 PYTHON_BIN="$BOT_DIR/venv/bin/python"
 
 # Telegram credentials
@@ -49,13 +49,10 @@ bot_token = "8045038464:AAEtuw1RAvOO2rxJhYLwaCQYNZkZ9Yl5bxY"
 DATA_FILE = "bot_data.json"
 PASSWORD = "hunter@Nawoo"   # 🔑 change this to your own password
 
-
 # ===== LOAD DATA =====
 if os.path.exists(DATA_FILE):
     with open(DATA_FILE, "r") as f:
         data = json.load(f)
-
-    # 🔧 Ensure all required keys exist
     if "authorized_users" not in data:
         data["authorized_users"] = []
     if "source_ids" not in data:
@@ -63,34 +60,27 @@ if os.path.exists(DATA_FILE):
     if "dest_ids" not in data:
         data["dest_ids"] = []
     if "footer" not in data:
-        data["footer"] = "\n\n— Forwarded by MyBot"
-
-    # Save back if we fixed anything
+        data["footer"] = "\n\n— Forwarded by SanduniBot"
     with open(DATA_FILE, "w") as f:
         json.dump(data, f, indent=4)
-
 else:
     data = {
         "source_ids": [],
         "dest_ids": [],
-        "footer": "\n\n— Forwarded by MyBot",
+        "footer": "\n\n— Forwarded by SanduniBot",
         "authorized_users": []
     }
     with open(DATA_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
-
 # ===== SAVE DATA =====
 def save_data():
-    """Write current data dict to JSON file."""
     with open(DATA_FILE, "w") as f:
         json.dump(data, f, indent=4)
-
 
 # ===== CLIENTS =====
 userbot = TelegramClient("userbot_session", api_id, api_hash)
 bot = TelegramClient("bot_session", api_id, api_hash)
-
 
 # ===== USERBOT: MESSAGE FORWARDER =====
 @userbot.on(events.NewMessage())
@@ -114,11 +104,9 @@ async def forward_handler(event):
             except Exception as e:
                 print(f"⚠️ Failed to send message to {dest}: {e}")
 
-
 # ===== BOT: COMMAND HANDLERS =====
 def is_authorized(user_id: int) -> bool:
     return user_id in data["authorized_users"]
-
 
 @bot.on(events.NewMessage(pattern="/start"))
 async def start_handler(event):
@@ -126,7 +114,6 @@ async def start_handler(event):
         await event.respond("🔒 Please enter password using /login <password>")
         return
     await event.respond("👋 Hello! I'm your forward bot.\nUse /help to see commands.")
-
 
 @bot.on(events.NewMessage(pattern=r"^/login (.+)"))
 async def login_handler(event):
@@ -138,7 +125,6 @@ async def login_handler(event):
         await event.respond("✅ Login successful! You can now use commands.\n /help to see commands.")
     else:
         await event.respond("❌ Wrong password. Try again.")
-
 
 @bot.on(events.NewMessage(pattern="/help"))
 async def help_handler(event):
@@ -160,7 +146,6 @@ async def help_handler(event):
     )
     await event.respond(help_text)
 
-
 @bot.on(events.NewMessage(pattern=r"^/setfooter (.+)"))
 async def set_footer_handler(event):
     if not is_authorized(event.sender_id):
@@ -169,7 +154,6 @@ async def set_footer_handler(event):
     data["footer"] = "\n\n" + event.pattern_match.group(1)
     save_data()
     await event.respond(f"✅ Footer updated:\n{data['footer']}")
-
 
 @bot.on(events.NewMessage(pattern=r"^/addsource (-?\d+)"))
 async def add_source_handler(event):
@@ -184,7 +168,6 @@ async def add_source_handler(event):
     else:
         await event.respond("⚠️ Already in sources.")
 
-
 @bot.on(events.NewMessage(pattern=r"^/adddest (-?\d+)"))
 async def add_dest_handler(event):
     if not is_authorized(event.sender_id):
@@ -197,7 +180,6 @@ async def add_dest_handler(event):
         await event.respond(f"✅ Added destination: {new_id}")
     else:
         await event.respond("⚠️ Already in destinations.")
-
 
 @bot.on(events.NewMessage(pattern=r"^/removesource (-?\d+)"))
 async def remove_source_handler(event):
@@ -212,7 +194,6 @@ async def remove_source_handler(event):
     else:
         await event.respond("⚠️ Source not found.")
 
-
 @bot.on(events.NewMessage(pattern=r"^/removedest (-?\d+)"))
 async def remove_dest_handler(event):
     if not is_authorized(event.sender_id):
@@ -226,7 +207,6 @@ async def remove_dest_handler(event):
     else:
         await event.respond("⚠️ Destination not found.")
 
-
 @bot.on(events.NewMessage(pattern="/listsources"))
 async def list_sources_handler(event):
     if not is_authorized(event.sender_id):
@@ -235,7 +215,6 @@ async def list_sources_handler(event):
     sources = "\n".join(str(i) for i in data["source_ids"]) or "None"
     await event.respond(f"📋 Sources:\n{sources}")
 
-
 @bot.on(events.NewMessage(pattern="/listdests"))
 async def list_dests_handler(event):
     if not is_authorized(event.sender_id):
@@ -243,7 +222,6 @@ async def list_dests_handler(event):
         return
     dests = "\n".join(str(i) for i in data["dest_ids"]) or "None"
     await event.respond(f"📋 Destinations:\n{dests}")
-
 
 @bot.on(events.NewMessage(pattern="/showconfig"))
 async def show_config_handler(event):
@@ -256,7 +234,6 @@ async def show_config_handler(event):
         f"Footer: {data['footer']}"
     )
 
-
 # ===== RUN BOTH CLIENTS =====
 async def main():
     await userbot.start()
@@ -267,17 +244,15 @@ async def main():
         bot.run_until_disconnected()
     )
 
-
 if __name__ == "__main__":
     asyncio.run(main())
-
 
 EOF
 
 echo "=== 6. Creating systemd service ==="
 sudo tee /etc/systemd/system/$SERVICE_NAME.service > /dev/null <<EOF
 [Unit]
-Description=LiqHunter Telegram Bot
+Description=Sanduni Telegram Bot
 After=network.target
 
 [Service]
